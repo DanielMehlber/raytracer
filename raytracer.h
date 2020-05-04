@@ -4,7 +4,7 @@
 //  / __  / __ `/ __ \/ / _ \/ / __ `__ \/ _ \/ __ \/ / __ \/ _ \/ ___/
 // / /_/ / /_/ / / / / /  __/ / / / / / /  __/ / / / / /_/ /  __/ /    
 // \__,_/\__,_/_/ /_/_/\___/_/_/ /_/ /_/\___/_/ /_/_/_.___/\___/_/     
-//                                                                    
+//  https://github.com/danielmehlber                                     
 
 #include "math.h"
 #include <list>
@@ -27,6 +27,8 @@ struct Transform{
 
 struct Camera : Transform {
     int         max_ray_bounces {3};
+    Vec2<float> view_plane      {1, 1};
+    float       distance        {0.2f};
 };
 
 struct Light : Transform {
@@ -58,6 +60,8 @@ protected:
     Image*                  m_img;
     std::list<Renderable*>  m_render_list;
 public:
+
+    Camera camera;
 
     Raytracer() = delete;
     Raytracer(Image* img);

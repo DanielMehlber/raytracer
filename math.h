@@ -1,11 +1,9 @@
-
 //        __            _      __               __    ____             
 //   ____/ /___ _____  (_)__  / /___ ___  ___  / /_  / / /_  ___  _____
 //  / __  / __ `/ __ \/ / _ \/ / __ `__ \/ _ \/ __ \/ / __ \/ _ \/ ___/
 // / /_/ / /_/ / / / / /  __/ / / / / / /  __/ / / / / /_/ /  __/ /    
 // \__,_/\__,_/_/ /_/_/\___/_/_/ /_/ /_/\___/_/ /_/_/_.___/\___/_/     
-//                                                                    
-
+//  https://github.com/danielmehlber                                     
 
 #pragma once
 #include <memory>
@@ -40,6 +38,11 @@ template<typename T> struct Vec3{
         if(len == 0)    throw "Cannot normalize Vec3 of length 0."
         else/******/    return {x/len, y/len, z/len};
     }
+
+    inline Vec3<T> operator-(const Vec3<T>& vec){
+        return {x - vec.x, y - vec.y, z - vec.z};
+    }
+
 
     inline operator Vec2<T>(){
         return {x, y};
@@ -114,23 +117,27 @@ template <typename T> Matrix<T>::Matrix(const Matrix& cpy)
     std::memcpy(m_data, cpy.data, m_colums * m_rows);
 }
 
-template <typename T> inline Vec3<T> rotateX(Vec3<T> vec, float degree){
+template <typename T> inline Vec3<T> rotateX(const Vec3<T>& vec, float degree){
     auto len = vec.length();
     auto rad = radians(degree);
     rad += std::atan(vec.z / vec.y);
     return {vec.x, cos(rad) * len, std::sin(rad) * len};
 }
 
-template <typename T> inline Vec3<T> rotateY(Vec3<T> vec, float degree){
+template <typename T> inline Vec3<T> rotateY(const Vec3<T>& vec, float degree){
     auto len = vec.length();
     auto rad = radians(degree);
     rad += std::atan(vec.z / vec.x);
     return {std::cos(rad) * len, vec.y, std::sin(rad) * len};
 }
 
-template <typename T> inline Vec3<T> rotateZ(Vec3<T> vec, float degree){
+template <typename T> inline Vec3<T> rotateZ(const Vec3<T>& vec, float degree){
     auto len = vec.length();
     auto rad = radians(degree);
     rad += std::atan(vec.y / vec.x);
     return {std::cos(rad) * len, std::sin(rad) * len, vec.z};
+}
+
+template <typename T> inline Vec3<T> rotate(const Vec3<T>& vec, float x, float y, float z){
+    return rotateZ(rotateY(rotateX(vec, x), y), z);
 }
