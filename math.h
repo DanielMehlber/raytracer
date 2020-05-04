@@ -1,11 +1,29 @@
+
+//        __            _      __               __    ____             
+//   ____/ /___ _____  (_)__  / /___ ___  ___  / /_  / / /_  ___  _____
+//  / __  / __ `/ __ \/ / _ \/ / __ `__ \/ _ \/ __ \/ / __ \/ _ \/ ___/
+// / /_/ / /_/ / / / / /  __/ / / / / / /  __/ / / / / /_/ /  __/ /    
+// \__,_/\__,_/_/ /_/_/\___/_/_/ /_/ /_/\___/_/ /_/_/_.___/\___/_/     
+//                                                                    
+
+
 #pragma once
 #include <memory>
+#include <cmath>
 
 template <typename T> class Matrix;
+template <typename T> struct Vec2;
+template <typename T> struct Vec3;
+
+#define PI 3.14159265359f
+
+template<typename T> inline T degree(T t){ return t * 180/PI; }
+template<typename T> inline T radians(T t){ return t * PI/180; }
 
 template<typename T> struct Vec3{
-    T x, y, z;
-    inline Matrix<T> Matrix<T>() {
+    T x = NULL, y = NULL, z = NULL;
+
+    inline operator Matrix<T>() {
         Matrix<T> r(1, 3);
         r(0, 0) = x;
         r(0, 1) = y;
@@ -13,28 +31,37 @@ template<typename T> struct Vec3{
         return r;
     }
 
-    inline Vec2<T> Vec2<T>(){
+    inline float length() const noexcept {
+        return std::sqrt(x*x + y*y + z*z);
+    }
+
+    inline Vec3<T> norm() const {
+        auto len = length();
+        if(len == 0)    throw "Cannot normalize Vec3 of length 0."
+        else/******/    return {x/len, y/len, z/len};
+    }
+
+    inline operator Vec2<T>(){
         return {x, y};
     }
 
-    Vec3(const Matrix<T>& m);
 };
+
 
 template<typename T> struct Vec2{
     T x, y;
-    inline Matrix<T> Matrix<T>() {
+    inline operator Matrix<T>() {
         Matrix<T> r(1, 2);
         r(0, 0) = x;
         r(0, 1) = y;
         return r;
     }
 
-    inline Vec3<T> Vec3<T>() {
+    inline operator Vec3<T>() {
         return {x, y, 0};
     }
-
-    Vec2(const Matrix<T>& m);
 };
+
 
 template<typename T> class Matrix {
 protected:
@@ -50,12 +77,13 @@ public:
     Matrix(const Matrix& cpy);
     ~Matrix();
 
-    inline size_t   columns()   noexcept { return m_weight; };
+    inline size_t   columns()   noexcept { return m_colums; };
     inline size_t   rows()      noexcept { return m_rows; };
     inline const T* data()      noexcept { return m_data; } 
 
-    inline T& operator()(const size_t row, const size_t column) {
-        return m_data[x + y * m_rows]
+    inline const T operator()(const size_t row, const size_t column) const {
+        return m_data[column + row * m_rows];
+        //            ^column     ^row
     }
 
     inline Matrix<T> multiply(const Matrix<T>& m){
@@ -68,14 +96,41 @@ public:
     }
 };
 
-template <typename T> inline Vec3<T> rotateX(Vec3<T> vec, float degree){
+template <typename T> Matrix<T>::Matrix(const size_t rows, const size_t columns) 
+: m_colums{columns}, m_rows{rows}
+{
+    auto size = columns * rows;
+    if(size == 0) throw "Matrix can't be of size 0";
+    m_data = new T[size];
+}
 
+template <typename T> Matrix<T>::~Matrix(){
+    delete[] m_data;
+}
+
+template <typename T> Matrix<T>::Matrix(const Matrix& cpy)
+: m_colums{cpy.m_colums}, m_rows{cpy.m_rows}, data{m_rows * m_colums}
+{
+    std::memcpy(m_data, cpy.data, m_colums * m_rows);
+}
+
+template <typename T> inline Vec3<T> rotateX(Vec3<T> vec, float degree){
+    auto len = vec.length();
+    auto rad = radians(degree);
+    rad += std::atan(vec.z / vec.y);
+    return {vec.x, cos(rad) * len, std::sin(rad) * len};
 }
 
 template <typename T> inline Vec3<T> rotateY(Vec3<T> vec, float degree){
-
+    auto len = vec.length();
+    auto rad = radians(degree);
+    rad += std::atan(vec.z / vec.x);
+    return {std::cos(rad) * len, vec.y, std::sin(rad) * len};
 }
 
 template <typename T> inline Vec3<T> rotateZ(Vec3<T> vec, float degree){
-
+    auto len = vec.length();
+    auto rad = radians(degree);
+    rad += std::atan(vec.y / vec.x);
+    return {std::cos(rad) * len, std::sin(rad) * len, vec.z};
 }

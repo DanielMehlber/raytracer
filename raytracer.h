@@ -1,9 +1,23 @@
+
+//        __            _      __               __    ____             
+//   ____/ /___ _____  (_)__  / /___ ___  ___  / /_  / / /_  ___  _____
+//  / __  / __ `/ __ \/ / _ \/ / __ `__ \/ _ \/ __ \/ / __ \/ _ \/ ___/
+// / /_/ / /_/ / / / / /  __/ / / / / / /  __/ / / / / /_/ /  __/ /    
+// \__,_/\__,_/_/ /_/_/\___/_/_/ /_/ /_/\___/_/ /_/_/_.___/\___/_/     
+//                                                                    
+
 #include "math.h"
 #include <list>
+#include <fstream>
 
-union Color{
-    int rgb_value;
-    char data[4];
+struct Color{
+    int r = 0, g = 0, b = 0;
+    inline friend std::ostream& operator<<(std::ostream& stream, const Color& c){
+        stream << c.r << std::endl;
+        stream << c.g << std::endl;
+        stream << c.b << std::endl;
+        return stream;
+    }
 };
 
 
@@ -25,6 +39,11 @@ protected:
 public:
     Image() = delete;
     Image(const size_t width, const size_t height);
+
+    void write(const char* dest) const;
+
+    inline const size_t width() const { return m_colums; }
+    inline const size_t height() const { return m_rows; } 
 };
 
 
@@ -39,8 +58,6 @@ protected:
     Image*                  m_img;
     std::list<Renderable*>  m_render_list;
 public:
-
-    Camera camera;
 
     Raytracer() = delete;
     Raytracer(Image* img);
