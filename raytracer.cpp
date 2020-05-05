@@ -31,14 +31,25 @@ void Raytracer::render(){
     
     Vec3<float> ul, ll, ur, lr;
 
+    //Create camera setup from data
     ul = {camera.distance, -camera.view_plane.x / 2, camera.view_plane.y / 2};
     ll = {camera.distance, ul.y, camera.view_plane.y / 2};
     ur = {camera.distance, camera.view_plane.x / 2, ul.z};
     lr = {camera.distance, ur.y, ll.z};
 
-    for(size_t x = 0; x < width; x++)
-        for(size_t y = 0; y < height; y++){
-           //TODO: Ray generation
+    //Rotate Camera
+    rotate(ul, camera.rot.x, camera.rot.y, camera.rot.z); //    ul ------------ ur
+    rotate(ll, camera.rot.x, camera.rot.y, camera.rot.z); //    |               |
+    rotate(ur, camera.rot.x, camera.rot.y, camera.rot.z); //    |               |
+    rotate(lr, camera.rot.x, camera.rot.y, camera.rot.z); //    ll ------------ lr
+
+
+    for(size_t y = 0; y < height; y++)
+        for(size_t x = 0; x < width; x++){
+            Vec3<float> vx = ul + (ur - ul) * ((float)x / (float)width);
+            Vec3<float> v = vx + (ur-lr) * ((float)y / (float)height);
+            RayCast raycast(camera.max_ray_bounces, camera.pos, v);
+            m_img->operator()(x, y) = raycast.fire();
         }
 }
 
@@ -48,3 +59,13 @@ Raytracer::Raytracer(Image* img)
     if(!m_img) throw "Cannot create Raytracer with no image. img was nullptr.";
 }
 
+
+RayCast::RayCast(const size_t max_bounces, Vec3<float> start, Vec3<float> dir)
+: m_start{start}, m_dir{dir}, m_max_bounces{max_bounces}
+{
+
+}
+
+Color RayCast::fire() {
+    return {1, 0, 0};
+}

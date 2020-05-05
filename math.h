@@ -43,6 +43,14 @@ template<typename T> struct Vec3{
         return {x - vec.x, y - vec.y, z - vec.z};
     }
 
+    inline Vec3<T> operator+(const Vec3<T>& vec){
+        return {x + vec.x, y + vec.y, z + vec.z};
+    }
+
+    inline Vec3<T> operator* (const T t){
+        return {x * t, y * t, z * t};
+    }
+
 
     inline operator Vec2<T>(){
         return {x, y};
@@ -68,11 +76,8 @@ template<typename T> struct Vec2{
 
 template<typename T> class Matrix {
 protected:
-    const T* m_data;
+    T* m_data;
     const size_t m_colums, m_rows;
-
-private:
-    
 
 public:
     Matrix() = delete;
@@ -84,7 +89,7 @@ public:
     inline size_t   rows()      noexcept { return m_rows; };
     inline const T* data()      noexcept { return m_data; } 
 
-    inline const T operator()(const size_t row, const size_t column) const {
+    inline T& operator()(const size_t row, const size_t column) const {
         return m_data[column + row * m_rows];
         //            ^column     ^row
     }

@@ -14,18 +14,22 @@ int main(int argc, char** argv){
     if(!out_location) out_location = "result.ppm";
 
     std::cout << "Raytracer started" << std::endl;
-    std::cout << "Saving Image to location '" << out_location << "'." << std::endl;
+    
 
     Vec3<float> vec {1, 0, 0};
     auto v = rotateX(rotateY(rotateZ(vec, 90), 90), 90);
 
-    Image img(500, 500);
+    Image img(1080, 720);
 
-    //TODO: rendering here
+    std::cout << "Rendering started...";
+    Raytracer tracer(&img);
+    tracer.render();
+    std::cout << " finished." << std::endl;
 
+    std::cout << "Saving Image to location '" << out_location << "'... ";
     _TRY_BEGIN img.write(out_location); _CATCH(const char* e) std::cerr << e << std::endl; _CATCH_END; 
 
-    std::cout << "Finished. Raytracer is terminating..." << std::endl;
+    std::cout << "finished. Raytracer is terminating..." << std::endl;
     
     return 0;
 }

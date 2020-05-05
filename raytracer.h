@@ -6,9 +6,11 @@
 // \__,_/\__,_/_/ /_/_/\___/_/_/ /_/ /_/\___/_/ /_/_/_.___/\___/_/     
 //  https://github.com/danielmehlber                                     
 
+#pragma once
 #include "math.h"
 #include <list>
 #include <fstream>
+#include <iostream>
 
 struct Color{
     int r = 0, g = 0, b = 0;
@@ -48,11 +50,21 @@ public:
     inline const size_t height() const { return m_rows; } 
 };
 
+class RayCast{
+protected:
+    const size_t        m_max_bounces;
+    const Vec3<float>   m_start;
+    const Vec3<float>   m_dir; 
+public:
+    RayCast(const size_t max_bounces = 0, Vec3<float> start = {0,0,0}, Vec3<float> dir = {1,0,0});
+
+    Color fire();
+};
+
 
 class Renderable {
 public:
     bool m_visible  {true};
-
 };
 
 class Raytracer{
