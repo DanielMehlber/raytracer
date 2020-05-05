@@ -33,7 +33,7 @@ void Raytracer::render(){
 
     //Create camera setup from data
     ul = {camera.distance, -camera.view_plane.x / 2, camera.view_plane.y / 2};
-    ll = {camera.distance, ul.y, camera.view_plane.y / 2};
+    ll = {camera.distance, ul.y, -camera.view_plane.y / 2};
     ur = {camera.distance, camera.view_plane.x / 2, ul.z};
     lr = {camera.distance, ur.y, ll.z};
 
@@ -47,9 +47,9 @@ void Raytracer::render(){
     for(size_t y = 0; y < height; y++)
         for(size_t x = 0; x < width; x++){
             Vec3<float> vx = ul + (ur - ul) * ((float)x / (float)width);
-            Vec3<float> v = vx + (ur-lr) * ((float)y / (float)height);
-            RayCast raycast(camera.max_ray_bounces, camera.pos, v);
-            m_img->operator()(x, y) = raycast.fire();
+            Vec3<float> v = vx + ((lr - ur) * ((float)y / (float)height));
+            Ray raycast(camera.max_ray_bounces, camera.pos, v);
+            m_img->operator()(x, y) = raycast.fire(&m_render_list);
         }
 }
 
@@ -60,12 +60,38 @@ Raytracer::Raytracer(Image* img)
 }
 
 
-RayCast::RayCast(const size_t max_bounces, Vec3<float> start, Vec3<float> dir)
+Ray::Ray(const size_t max_bounces, Vec3<float> start, Vec3<float> dir)
 : m_start{start}, m_dir{dir}, m_max_bounces{max_bounces}
 {
 
 }
 
-Color RayCast::fire() {
-    return {1, 0, 0};
+Color Ray::fire(std::list<Renderable*>* renderlist) {
+    for(Renderable* ren : *renderlist){
+        if(ren->m_visible)
+            if(ren->intersect(*this)) break;
+    }
+    return m_color;
 }
+
+bool Sphere::intersect(Ray& ray){
+    Vec3<float> a = pos - ray.m_start;
+    a = a.cross(ray.m_dir);
+    float dist = a.length() / ray.m_dir.length();
+    if(dist <= radius){
+        ray.m_color = m_material.base;
+        //TODO: Reflections go here.
+        return true;
+    }else{
+        return false;
+    }
+}
+
+void Raytracer::add(Renderable* ren){
+    m_render_list.push_back(ren);
+}
+
+void Raytracer::remove(Renderable* ren){
+    m_render_list.remove(ren); 
+}
+

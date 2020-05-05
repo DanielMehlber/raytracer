@@ -1,3 +1,5 @@
+#ifndef __RAYTRACER_H__
+#define __RAYTRACER_H__
 
 //        __            _      __               __    ____             
 //   ____/ /___ _____  (_)__  / /___ ___  ___  / /_  / / /_  ___  _____
@@ -30,7 +32,7 @@ struct Transform{
 struct Camera : Transform {
     int         max_ray_bounces {3};
     Vec2<float> view_plane      {1, 1};
-    float       distance        {0.2f};
+    float       distance        {1.0f};
 };
 
 struct Light : Transform {
@@ -50,21 +52,35 @@ public:
     inline const size_t height() const { return m_rows; } 
 };
 
-class RayCast{
-protected:
+struct Renderable;
+
+struct Ray{
+
     const size_t        m_max_bounces;
     const Vec3<float>   m_start;
-    const Vec3<float>   m_dir; 
-public:
-    RayCast(const size_t max_bounces = 0, Vec3<float> start = {0,0,0}, Vec3<float> dir = {1,0,0});
+    const Vec3<float>   m_dir;
+    Color               m_color;
 
-    Color fire();
+    Ray(const size_t max_bounces = 0, Vec3<float> start = {0,0,0}, Vec3<float> dir = {1,0,0});
+
+    Color fire(std::list<Renderable*>* renderlist);
 };
 
 
-class Renderable {
-public:
-    bool m_visible  {true};
+struct Material {
+    Color base      {255, 0, 255};
+    float diffuse   {1.0f}; 
+};
+
+struct Renderable {
+    bool        m_visible  {true};
+    Material    m_material;
+    virtual bool intersect(Ray& ray) = 0;
+};
+
+struct Sphere : Renderable, Transform{
+    float radius {1.0f};
+    virtual bool intersect(Ray& ray) override;
 };
 
 class Raytracer{
@@ -82,3 +98,4 @@ public:
     void add(Renderable* obj);
     void remove(Renderable* obj);
 };
+#endif // __RAYTRACER_H__

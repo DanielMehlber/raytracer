@@ -39,18 +39,29 @@ template<typename T> struct Vec3{
         else/******/    return {x/len, y/len, z/len};
     }
 
-    inline Vec3<T> operator-(const Vec3<T>& vec){
+    inline Vec3<T> operator-(const Vec3<T>& vec) const {
         return {x - vec.x, y - vec.y, z - vec.z};
     }
 
-    inline Vec3<T> operator+(const Vec3<T>& vec){
+    inline Vec3<T> operator+(const Vec3<T>& vec) const {
         return {x + vec.x, y + vec.y, z + vec.z};
     }
 
-    inline Vec3<T> operator* (const T t){
+    inline Vec3<T> operator* (const T t) const{
         return {x * t, y * t, z * t};
     }
 
+    inline T dot(const Vec3<T>& vec) const {
+        return vec.x * x + vec.y * y + vec.z * z;
+    }
+
+    inline Vec3<T> cross(const Vec3<T>& vec) const {
+        return {
+            y * vec.z - z * vec.y,
+            z * vec.x - x * vec.z,
+            x * vec.y - y * vec.x
+        };
+    }
 
     inline operator Vec2<T>(){
         return {x, y};
