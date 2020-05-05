@@ -155,7 +155,7 @@ template <typename T> inline Vec3<T> rotateZ(const Vec3<T>& vec, float degree){
 }
 
 template <typename T> inline Vec3<T> rotate(const Vec3<T>& vec, float x, float y, float z){
-    return rotateZ(rotateY(rotateX(vec, x), y), z);
+    return rotateX(rotateY(rotateZ(vec, z), y), x);
 }
 
 inline float angle(const Vec3<float>& a, const Vec3<float>& b){

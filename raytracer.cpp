@@ -17,8 +17,8 @@ void Image::write(const char * dest) const {
     //Basic Header data for .ppm image files.
     file << "P3\n" << width() << "\n" << height() << "\n" << "255\n"; 
     //Data    ^mode     ^width             ^height             ^color value
-    for(size_t x = 0; x < width(); x++)
-        for(size_t y = 0; y < height(); y++)
+    for(size_t y = 0; y < height(); y++)
+        for(size_t x = 0; x < width(); x++)
             file << operator()(x, y);
     file.flush();
 }
