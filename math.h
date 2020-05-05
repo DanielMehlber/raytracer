@@ -157,3 +157,7 @@ template <typename T> inline Vec3<T> rotateZ(const Vec3<T>& vec, float degree){
 template <typename T> inline Vec3<T> rotate(const Vec3<T>& vec, float x, float y, float z){
     return rotateZ(rotateY(rotateX(vec, x), y), z);
 }
+
+inline float angle(const Vec3<float>& a, const Vec3<float>& b){
+    return std::acos(a.dot(b) / (a.length() * b.length()));
+}

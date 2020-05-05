@@ -75,10 +75,11 @@ Color Ray::fire(std::list<Renderable*>* renderlist) {
 }
 
 bool Sphere::intersect(Ray& ray){
-    Vec3<float> a = pos - ray.m_start;
-    a = a.cross(ray.m_dir);
-    float dist = a.length() / ray.m_dir.length();
+    Vec3<float> center = pos - ray.m_start; 
+    float dist = std::sin(angle(center, ray.m_dir)) * center.length(); 
+
     if(dist <= radius){
+        //TODO: Point comes here
         ray.m_color = m_material.base;
         //TODO: Reflections go here.
         return true;
