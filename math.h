@@ -35,7 +35,7 @@ template<typename T> struct Vec3{
 
     inline Vec3<T> norm() const {
         auto len = length();
-        if(len == 0)    throw "Cannot normalize Vec3 of length 0."
+        if(len == 0)    throw "Cannot normalize Vec3 of length 0.";
         else/******/    return {x/len, y/len, z/len};
     }
 
