@@ -7,6 +7,7 @@
 
 #include "raytracer.h"
 
+
 Image::Image(const size_t width, const size_t height)
 : Matrix<Color>(width, height)
 {}
@@ -48,7 +49,7 @@ void Raytracer::render(){
         for(size_t x = 0; x < width; x++){
             Vec3<float> vx = ul + (ur - ul) * ((float)x / (float)width);
             Vec3<float> v = vx + ((lr - ur) * ((float)y / (float)height));
-            Ray raycast(camera.max_ray_bounces, camera.pos, v);
+            Ray raycast(camera.max_ray_bounces, camera.pos, v.norm());
             m_img->operator()(x, y) = raycast.fire(&m_render_list);
         }
 }
@@ -74,18 +75,34 @@ Color Ray::fire(std::list<Renderable*>* renderlist) {
     return m_color;
 }
 
-bool Sphere::intersect(Ray& ray){
-    Vec3<float> center = pos - ray.m_start; 
-    float dist = std::sin(angle(center, ray.m_dir)) * center.length(); 
-
-    if(dist <= radius){
-        //TODO: Point comes here
-        ray.m_color = m_material.base;
-        //TODO: Reflections go here.
-        return true;
-    }else{
-        return false;
+void Ray::intersection(const Intersection& inter){
+    if(inter.dist >= 0){
+        if(inter.dist > m_closest.dist)
+            m_closest = inter;
     }
+}
+
+bool Sphere::intersect(Ray& ray){
+    Vec3<float> camera2center = pos - ray.m_start; 
+    float dist = std::sin(angle(camera2center, ray.m_dir)) * camera2center.length(); 
+    //Detect if ray hits the sphere. If so, calculate the intersecting points...
+    if(dist <= radius){
+        /* Vector v is perpindicular to ray.
+        *   1. Generate normal of auxiliary plane
+        *   2. Cross product of normal and ray results in Vector v
+        */
+        
+        float midpoint_dist = std::sqrt(std::pow(camera2center.length(), 2) - std::pow(dist, 2));
+        Vec3<float> midpoint = ray.m_start + ray.m_dir * midpoint_dist;
+
+        float delta = radius * sin(radius - dist);
+        
+        Vec3<float> inter1 = ray.m_start + ray.m_dir * (midpoint_dist - delta);
+        Vec3<float> inter2 = ray.m_start + ray.m_dir * (midpoint_dist + delta);
+
+        ray.m_color = m_material.base * delta;
+        return true;
+    } else return false;
 }
 
 void Raytracer::add(Renderable* ren){

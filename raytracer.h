@@ -22,6 +22,9 @@ struct Color{
         stream << c.b << std::endl;
         return stream;
     }
+    template <typename T> inline Color operator*(T scalar){
+        return {(int)(r * scalar), (int)(g * scalar), (int)(b * scalar)};
+    }
 };
 
 
@@ -54,16 +57,24 @@ public:
 
 struct Renderable;
 
+struct Intersection {
+    float dist = -1;
+    Color color;
+};
+
 struct Ray{
 
     const size_t        m_max_bounces;
     const Vec3<float>   m_start;
     const Vec3<float>   m_dir;
-    Color               m_color;
+    Color               m_color {255, 255, 255};
+    Intersection        m_closest;
 
     Ray(const size_t max_bounces = 0, Vec3<float> start = {0,0,0}, Vec3<float> dir = {1,0,0});
 
     Color fire(std::list<Renderable*>* renderlist);
+
+    void intersection(const Intersection& inter);
 };
 
 

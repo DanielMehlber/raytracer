@@ -14,6 +14,7 @@ template <typename T> struct Vec2;
 template <typename T> struct Vec3;
 
 #define PI 3.14159265359f
+#define IS_UNSIGNED(x) (x >= 0)
 
 template<typename T> inline T degree(T t){ return t * 180/PI; }
 template<typename T> inline T radians(T t){ return t * PI/180; }
@@ -65,6 +66,12 @@ template<typename T> struct Vec3{
 
     inline operator Vec2<T>(){
         return {x, y};
+    }
+
+    inline bool has_same_direction(const Vec3<T>& vec){
+        return  IS_UNSIGNED(x) == IS_UNSIGNED(vec.x)
+            &&  IS_UNSIGNED(y) == IS_UNSIGNED(vec.y)
+            &&  IS_UNSIGNED(z) == IS_UNSIGNED(vec.z);
     }
 
 };

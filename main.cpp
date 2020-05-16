@@ -18,17 +18,17 @@ int main(int argc, char** argv){
 
     Vec3<float> vec {1, 0, 0};
 
-    Image img(500, 500);
+    Image img(500,500);
 
     Raytracer tracer(&img);
 
     Sphere sphere1; sphere1.radius = 1.0f;
-    sphere1.pos = {4, 4, 0};
+    sphere1.pos = {4, -1, 0};
     sphere1.m_material.base = {255, 0, 0};
     tracer.add(&sphere1);
 
-    Sphere sphere2; sphere2.radius = 2.0f;
-    sphere2.pos = {8, -4, 0};
+    Sphere sphere2; sphere2.radius = 1.0f;
+    sphere2.pos = {8, 0, 0};
     sphere2.m_material.base = {0, 0, 255};
     tracer.add(&sphere2),
 
