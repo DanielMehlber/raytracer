@@ -22,15 +22,20 @@ int main(int argc, char** argv){
 
     Raytracer tracer(&img);
 
-    Sphere sphere1; sphere1.radius = 1.0f;
-    sphere1.pos = {4, -1, 0};
+    Sphere sphere1; sphere1.radius = 1.5f;
+    sphere1.pos = {6, -1, 0};
     sphere1.m_material.base = {255, 0, 0};
     tracer.add(&sphere1);
 
-    Sphere sphere2; sphere2.radius = 1.0f;
-    sphere2.pos = {8, 0, 0};
+    Sphere sphere2; sphere2.radius = 1.5f;
+    sphere2.pos = {5.5f, 1, 0};
     sphere2.m_material.base = {0, 0, 255};
-    tracer.add(&sphere2),
+    tracer.add(&sphere2);
+
+    Sphere sphere3; sphere3.radius = 0.1f;
+    sphere3.pos = {2, 0.8f, 0.8f};
+    sphere3.m_material.base = {0, 255, 0};
+    tracer.add(&sphere3);
 
     std::cout << "Rendering started...";
     tracer.render();
