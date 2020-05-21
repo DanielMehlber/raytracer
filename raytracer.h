@@ -261,6 +261,10 @@ struct Ray{
      * @brief closest intersection to the camera --> visible intersection.
      */
     Intersection        m_closest;
+    /**
+     * @brief Ignore an object for the next fire iteration.
+     */
+    std::list<Renderable*> m_ignore;
 
     /**
      * @brief Construct a new Ray object

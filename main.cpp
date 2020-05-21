@@ -15,22 +15,24 @@ int main(int argc, char** argv){
 
     std::cout << "Raytracer started" << std::endl;
 
-    Image img(250,250);
+    Image img(500,500);
 
     Raytracer tracer(&img);
 
     Sphere sphere1; sphere1.radius = 1.5f;
-    sphere1.pos = {6, -1, 0};
+    sphere1.pos = {6, -1.5f, 0};
     sphere1.material.base_color = {1, 0, 0};
+    sphere1.material.diffuseness = 0;
     tracer.scene.add(&sphere1);
 
     Sphere sphere2; sphere2.radius = 1.5f;
-    sphere2.pos = {5.5f, 1, 0};
+    sphere2.pos = {6.5f, 1.5f, 0};
     sphere2.material.base_color = {0, 0, 1};
+    sphere2.material.diffuseness = 1;
     tracer.scene.add(&sphere2);
 
     Sphere sphere3; sphere3.radius = 0.1f;
-    sphere3.pos = {2, 0.8f, 0.8f};
+    sphere3.pos = {4, 0.8f, 0.8f};
     sphere3.material.base_color = {0, 1, 0};
     tracer.scene.add(&sphere3);
 

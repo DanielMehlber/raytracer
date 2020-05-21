@@ -88,7 +88,7 @@ Ray::Ray(const size_t max_bounces, Vec3<float> start, Vec3<float> dir)
 Color Ray::fire(const SceneData& scene) {
     //Stage 1: Interseption phase
     for(Renderable* object : scene.m_render_list){
-        if(object->m_visible)
+        if(object->m_visible && std::find(m_ignore.begin(), m_ignore.end(), object) == m_ignore.end())
             object->intersect(*this);
     }
     
@@ -133,7 +133,7 @@ bool Sphere::intersect(Ray& ray){
     if(dist <= radius){
         
         float midpoint_dist = std::sqrt(std::pow(camera2center.length(), 2) - std::pow(dist, 2));
-        Vec3<float> midpoint = ray.m_start + ray.m_dir * midpoint_dist;
+        //Vec3<float> midpoint = ray.m_start + ray.m_dir * midpoint_dist;
 
         float delta = sin(0.5f * PI* ((radius - dist)/radius));
         float alpha = delta * radius;
@@ -141,8 +141,9 @@ bool Sphere::intersect(Ray& ray){
         Vec3<float> inter1 = ray.m_start + ray.m_dir * (midpoint_dist - alpha);
         Vec3<float> inter2 = ray.m_start + ray.m_dir * (midpoint_dist + alpha);
         
-        ray.intersection({inter1, this});
-        ray.intersection({inter2, this});
+        //Check if that point is in front of the camera by caluclating the distance to sphere center.
+        if((inter1 - pos).length() <= radius) ray.intersection({inter1, this});
+        if((inter2 - pos).length() <= radius) ray.intersection({inter2, this});
 
         return true;
     } else return false;
@@ -158,8 +159,14 @@ Color Sphere::process(const SceneData& scene, const Vec3<float>& point, const Ra
     //Reflection calculation
     if(diffuseness != 1) {
         Color reflection_color = {0,0,0};
-        Vec3<float> reflect = ((normal * normal.dot(ray.m_dir) * 2) - ray.m_dir).norm();
+        Vec3<float> reflect = (ray.m_dir - (normal * normal.dot(ray.m_dir) * 2)).norm();
         
+        Ray reflection_ray(ray.m_max_bounces - 1, point, reflect);
+        reflection_ray.m_ignore.push_back(this);
+        //m_visible = false;
+        reflection_color = reflection_ray.fire(scene);
+        //m_visible = true;
+
         pixel_color += reflection_color * (1 - diffuseness);
     }
 
@@ -172,6 +179,7 @@ Color Sphere::process(const SceneData& scene, const Vec3<float>& point, const Ra
             Vec3<float> point_to_light      = current_light->pos - point;
             float       distance_to_light   = point_to_light.length();
             //Check for Shadows here.
+
             if(distance_to_light <= current_light->distance){
                 float _dot_product      = point_to_light.norm().dot(normal);
                 float angle_factor      = _dot_product > 1 ? 1 : (_dot_product < 0 ? 0 : _dot_product);
