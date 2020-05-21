@@ -39,26 +39,105 @@ public:
 };
 
 struct Color{
-    uint8_t r = 0, g = 0, b = 0;
+    float r = 0, g = 0, b = 0;
     inline friend std::ostream& operator<<(std::ostream& stream, const Color& c){
-        stream << +c.r << std::endl;
-        stream << +c.g << std::endl;
-        stream << +c.b << std::endl;
+        stream << (int)(c.r * 255) << std::endl;
+        stream << (int)(c.g * 255) << std::endl;
+        stream << (int)(c.b * 255) << std::endl;
         return stream;
     }
-    /**
-     * @brief Multiplying Color by a scalar + clamping values.
-     * @tparam T Type of scalar.
-     * @param scalar value of scalar.
-     * @return Color new Color after multiplication.
-     */
-    template <typename T> inline Color operator*(T scalar){
-        int _r = ((int)r) * scalar, _b = ((int)b) * scalar, _g = ((int)g) * scalar;
-        if(_r > 255) _r = 255; else if (_r < 0) _r = 0;
-        if(_g > 255) _g = 255; else if (_g < 0) _g = 0;
-        if(_b > 255) _b = 255; else if (_b < 0) _b = 0;
-        return {(uint8_t)(_r), (uint8_t)(_g), (uint8_t)(_b)};
+
+    inline float brightness(){
+        float max = r;
+        if(g > max) max = g;
+        if(b > max) max = b;
+        return max;
     }
+
+    inline void add(float f){
+        r += f;
+        g += f;
+        b += f;
+        clamp_color();
+    }
+
+    inline void add(const Color& col){
+        r += col.r;
+        g += col.g;
+        b += col.b;
+        clamp_color();
+    }
+
+    inline void sub(float f){
+        r -= f;
+        g -= f;
+        b -= f;
+        clamp_color();
+    }
+
+    inline void sub(const Color& col){
+        r -= col.r;
+        g -= col.g;
+        b -= col.b;
+        clamp_color();
+    }
+
+    inline void mult(float f){
+        r *= f;
+        g *= f;
+        b *= f;
+        clamp_color();
+    }
+
+    inline void mult(const Color& col){
+        r *= col.r;
+        g *= col.g;
+        b *= col.b;
+        clamp_color();
+    }
+
+    inline void div(float f){
+        r /= f;
+        g /= f;
+        b /= f;
+        clamp_color();
+    }
+
+    inline void div(const Color& col){
+        r /= col.r;
+        g /= col.g;
+        b /= col.b;
+        clamp_color();
+    }
+
+    inline void clamp_color(){
+        Vec3<float> v = {r, g, b};
+        if(v.length() > 1){
+            auto _v = v.norm();
+            r = _v.x;
+            g = _v.y;    
+            b = _v.z;
+        }
+    }
+
+    inline void operator+=(const Color& col){ add(col); };
+    inline void operator-=(const Color& col){ sub(col); };
+    inline void operator*=(const Color& col){ mult(col); };
+    inline void operator/=(const Color& col){ div(col); };
+    inline void operator+=(float col){ add(col); };
+    inline void operator-=(float col){ sub(col); };
+    inline void operator*=(float col){ mult(col); };
+    inline void operator/=(float col){ div(col); };
+
+    inline Color operator+(const Color& col){ Color _c(*this); _c.add(col); return _c; };
+    inline Color operator-(const Color& col){ Color _c(*this); _c.sub(col); return _c; };
+    inline Color operator*(const Color& col){ Color _c(*this); _c.mult(col); return _c; };
+    inline Color operator/(const Color& col){ Color _c(*this); _c.div(col); return _c; };
+    inline Color operator+(float col){ Color _c(*this); _c.add(col); return _c; };
+    inline Color operator-(float col){ Color _c(*this); _c.sub(col); return _c; };
+    inline Color operator*(float col){ Color _c(*this); _c.mult(col); return _c; };
+    inline Color operator/(float col){ Color _c(*this); _c.div(col); return _c; };
+    
 };
 
 /**
@@ -91,7 +170,22 @@ struct Camera : Transform {
  * @brief Basic light object.
  */
 struct Light : Transform {
-    Color color;
+    /**
+     * @brief If false, light will be ignored in the rendering process.
+     */
+    bool    visible     {true};
+    /**
+     * @brief Color of light
+     */
+    Color   color       {1,1,1};
+    /**
+     * @brief Intensity of light. Controls how strong the light "shines".
+     */
+    float   intensity   {1}; 
+    /**
+     * @brief Max distance of light.
+     */
+    float   distance    {10};
 };
 
 /**
@@ -141,6 +235,8 @@ struct Intersection {
     Renderable* object {nullptr};
 };
 
+struct SceneData;
+
 /**
  * @brief Ray.
  */
@@ -160,7 +256,7 @@ struct Ray{
     /**
      * @brief color of ray.
      */
-    Color               m_color {255, 255, 255};
+    Color               m_color {1, 1, 1};
     /**
      * @brief closest intersection to the camera --> visible intersection.
      */
@@ -179,7 +275,7 @@ struct Ray{
      * @param renderlist list of objects to render (= list of intersectable objects).
      * @return Color Result and final color of ray.
      */
-    Color fire(std::list<Renderable*>* renderlist);
+    Color fire(const SceneData& scene);
 
     /**
      * @brief Register another intersection. Intersection will be automatically filtered.
@@ -195,11 +291,11 @@ struct Material {
     /**
      * @brief Base diffuse color of surface.
      */
-    Color base      {255, 0, 255};
+    Color base_color      {1, 1, 1};
     /**
      * @brief diffuse-ness of surface. 1 = no reflections, 0 = only reflections.
      */
-    float diffuse   {1.0f}; 
+    float diffuseness   {1.0f}; 
 };
 
 /**
@@ -213,7 +309,7 @@ struct Renderable {
     /**
      * @brief Material and surface information of object.
      */
-    Material    m_material;
+    Material    material;
     /**
      * @brief Checks for intersections with ray. (= Intersection stage)
      * @param ray Ray.
@@ -222,12 +318,12 @@ struct Renderable {
      */
     virtual bool intersect(Ray& ray) = 0;
     /**
-     * @brief Process intersection using Material data. (= Materialization stage)
+     * @brief Process intersection using Material data, Scene data and View Data. (= Materialization stage)
      * @param intersection clostest visible intersection on object.
      * @param ray ray used for detecting the intersection (For view data).
      * @return Color Final Color.
      */
-    virtual Color process(const Vec3<float>& intersection, const Ray& ray) = 0;
+    virtual Color process(const SceneData& scene, const Vec3<float>& intersection, const Ray& ray) = 0;
 };
 
 /**
@@ -239,8 +335,44 @@ struct Sphere : Renderable, Transform{
      */
     float radius {1.0f};
     virtual bool intersect(Ray& ray) override;
-    virtual Color process(const Vec3<float>& intersection, const Ray& ray);
+    virtual Color process(const SceneData& scene, const Vec3<float>& intersection, const Ray& ray) override;
 };
+
+/**
+ * @brief Represents scene, all objects in it and data.
+ */
+struct SceneData{
+    /**
+     * @brief List of objects in the scene / to render.
+     */
+    std::list<Renderable*>  m_render_list;
+    /**
+     * @brief Lights used by the scene.
+     */
+    std::list<Light*> light_list;
+
+    /**
+     * @brief Add renderable object to scene.
+     * @param obj renderable object.
+     */
+    void add(Renderable* obj);
+    /**
+     * @brief Remove renderable object from scene.
+     * @param obj renderable object.
+     */
+    void remove(Renderable* obj);
+    /**
+     * @brief Adds light to scene.
+     * @param light light.
+     */
+    void add(Light* light);
+    /**
+     * @brief Remove light from scene.
+     * @param light light.
+     */
+    void remove(Light* light);
+};
+
 
 /**
  * @brief Central raytracing unit.
@@ -251,13 +383,12 @@ protected:
     /**
      * @brief Image in which the result will be saved. Cannot be null.
      */
-    Image*                  m_img;
-    /**
-     * @brief List of objects in the scene / to render.
-     * 
-     */
-    std::list<Renderable*>  m_render_list;
+    Image*              m_img;
 public:
+    /**
+     * @brief Current Scene data.
+     */
+    SceneData           scene;
     /**
      * @brief Currently used camera.
      */
@@ -274,15 +405,5 @@ public:
      * @brief renders the scene and stores data in image.
      */
     void render();
-    /**
-     * @brief Add renderable object to scene.
-     * @param obj renderable object.
-     */
-    void add(Renderable* obj);
-    /**
-     * @brief Remove renderable object from scene.
-     * @param obj renderable object.
-     */
-    void remove(Renderable* obj);
 };
 #endif // __RAYTRACER_H__

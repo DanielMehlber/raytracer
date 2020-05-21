@@ -66,7 +66,7 @@ void Raytracer::render(){
             Vec3<float> vx = ul + (ur - ul) * ((float)x / (float)width);
             Vec3<float> v = vx + ((lr - ur) * ((float)y / (float)height));
             Ray raycast(camera.max_ray_bounces, camera.pos, v.norm());
-            m_img->operator()(x, y) = raycast.fire(&m_render_list);
+            m_img->operator()(x, y) = raycast.fire(scene);
         }
     auto time = render_clock.stop();
     std::cout << "Elapsed time: " << (int)time << "ns = " << (time/1000000) << "ms" << std::endl;
@@ -85,16 +85,16 @@ Ray::Ray(const size_t max_bounces, Vec3<float> start, Vec3<float> dir)
 
 }
 
-Color Ray::fire(std::list<Renderable*>* renderlist) {
+Color Ray::fire(const SceneData& scene) {
     //Stage 1: Interseption phase
-    for(Renderable* ren : *renderlist){
-        if(ren->m_visible)
-            ren->intersect(*this);
+    for(Renderable* object : scene.m_render_list){
+        if(object->m_visible)
+            object->intersect(*this);
     }
     
     if(m_closest.object){
         //Process intersection
-        m_color = m_closest.object->process(m_closest.point, *this);
+        m_color = m_closest.object->process(scene, m_closest.point, *this);
     }else{
         //No intersection.
     }
@@ -148,25 +148,66 @@ bool Sphere::intersect(Ray& ray){
     } else return false;
 }
 
-Color Sphere::process(const Vec3<float>& point, const Ray& ray){
-    Color ret = m_material.base;
+Color Sphere::process(const SceneData& scene, const Vec3<float>& point, const Ray& ray){
     Vec3<float> normal = (point - pos).norm();
-    float value = -normal.dot(ray.m_dir);
-    ret = ret * value;
 
-    Vec3<float> reflect = ((normal * normal.dot(ray.m_dir) * 2) - ray.m_dir).norm();
+    //If no more bounces allowed, use diffuse color to 100%
+    float diffuseness = ray.m_max_bounces == 0 ? 1 : material.diffuseness;
+    Color pixel_color = {0,0,0};
 
-    //Light check
-    //Reflections
+    //Reflection calculation
+    if(diffuseness != 1) {
+        Color reflection_color = {0,0,0};
+        Vec3<float> reflect = ((normal * normal.dot(ray.m_dir) * 2) - ray.m_dir).norm();
+        
+        pixel_color += reflection_color * (1 - diffuseness);
+    }
 
-    return ret;
+    //Diffuse calculation
+    if(diffuseness != 0) {
+        Color diffuse_color = material.base_color;
+
+        Color light_color = {0,0,0};
+        for(Light* current_light : scene.light_list){
+            Vec3<float> point_to_light      = current_light->pos - point;
+            float       distance_to_light   = point_to_light.length();
+            //Check for Shadows here.
+            if(distance_to_light <= current_light->distance){
+                float _dot_product      = point_to_light.norm().dot(normal);
+                float angle_factor      = _dot_product > 1 ? 1 : (_dot_product < 0 ? 0 : _dot_product);
+                float distance_factor   = (current_light->distance - distance_to_light) / current_light->distance;
+
+                light_color += current_light->color * sqrt(angle_factor) * sqrt(distance_factor) * current_light->intensity;
+                //                                    ^ To counteract quadratic falloff
+            }
+        }
+
+        //Mix with pixel color
+        diffuse_color *= light_color;
+        pixel_color += diffuse_color * diffuseness;
+    }
+
+    return pixel_color;
+    
 }
 
-void Raytracer::add(Renderable* ren){
+void SceneData::add(Renderable* ren){
+    if(!ren) throw "Cannot add nullptr as renderable.";
     m_render_list.push_back(ren);
 }
 
-void Raytracer::remove(Renderable* ren){
+void SceneData::remove(Renderable* ren){
+    if(!ren) throw "Cannot remove nullptr from renderable list.";
     m_render_list.remove(ren); 
+}
+
+void SceneData::add(Light* light){
+    if(!light) throw "Cannot add nullptr as light.";
+    light_list.push_back(light);
+}
+
+void SceneData::remove(Light* light){
+    if(!light) throw "Cannot remove nullptr from lights list.";
+    light_list.remove(light);
 }
 

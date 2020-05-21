@@ -14,28 +14,36 @@ int main(int argc, char** argv){
     if(!out_location) out_location = "result.ppm";
 
     std::cout << "Raytracer started" << std::endl;
-    
 
-    Vec3<float> vec {1, 0, 0};
-
-    Image img(500,500);
+    Image img(250,250);
 
     Raytracer tracer(&img);
 
     Sphere sphere1; sphere1.radius = 1.5f;
     sphere1.pos = {6, -1, 0};
-    sphere1.m_material.base = {255, 0, 0};
-    tracer.add(&sphere1);
+    sphere1.material.base_color = {1, 0, 0};
+    tracer.scene.add(&sphere1);
 
     Sphere sphere2; sphere2.radius = 1.5f;
     sphere2.pos = {5.5f, 1, 0};
-    sphere2.m_material.base = {0, 0, 255};
-    tracer.add(&sphere2);
+    sphere2.material.base_color = {0, 0, 1};
+    tracer.scene.add(&sphere2);
 
     Sphere sphere3; sphere3.radius = 0.1f;
     sphere3.pos = {2, 0.8f, 0.8f};
-    sphere3.m_material.base = {0, 255, 0};
-    tracer.add(&sphere3);
+    sphere3.material.base_color = {0, 1, 0};
+    tracer.scene.add(&sphere3);
+
+    Light light1; light1.pos = {3,2,1};
+    light1.color = {1, 1, 1};
+    light1.distance = 20;
+    light1.intensity = 1.0f;
+    tracer.scene.add(&light1);
+
+    Light light2; light2.pos = {0, 0.5f, 1};
+    light2.color = {1, 0, 0};
+    light2.distance = 20;
+    //tracer.scene.add(&light2);
 
     std::cout << "Rendering started...";
     tracer.render();

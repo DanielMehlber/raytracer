@@ -168,3 +168,9 @@ template <typename T> inline Vec3<T> rotate(const Vec3<T>& vec, float x, float y
 inline float angle(const Vec3<float>& a, const Vec3<float>& b){
     return std::acos(a.dot(b) / (a.length() * b.length()));
 }
+
+template <typename T> T clamp(T t, T _min, T _max){
+    if(t > _max) t = _max;
+    else if (t < _min) t = _min;
+    return t;
+}
