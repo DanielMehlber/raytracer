@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iostream>
 #include <chrono>
+#include <array>
 
 /**
  * @brief Measures time. Used for render time.
@@ -148,8 +149,7 @@ struct Transform{
 };
 
 /**
- * @brief Camera and view
- * 
+ * @brief Raw camera data. View is calculated in rendering process.
  */
 struct Camera : Transform {
     /**
@@ -238,6 +238,13 @@ struct Intersection {
 struct SceneData;
 
 /**
+ * @brief View Vectors of Camera.
+ */
+struct View {
+    Vec3<float> ul, ur, ll, lr;
+};
+
+/**
  * @brief Ray.
  */
 struct Ray{
@@ -268,9 +275,9 @@ struct Ray{
 
     /**
      * @brief Construct a new Ray object
-     * @param max_bounces 
-     * @param start 
-     * @param dir 
+     * @param max_bounces bounce limit.
+     * @param start start point.
+     * @param dir direction of Ray.
      */
     Ray(const size_t max_bounces = 0, Vec3<float> start = {0,0,0}, Vec3<float> dir = {1,0,0});
 
@@ -300,6 +307,42 @@ struct Material {
      * @brief diffuse-ness of surface. 1 = no reflections, 0 = only reflections.
      */
     float diffuseness   {1.0f}; 
+};
+
+/**
+ * @brief Bounding Box of an objects.
+ */
+class BoundingBox{
+public:
+    /**
+     * @brief points a and b defining box.
+     */
+    Vec3<float> a, b;
+    /**
+     * @brief Construct a new Bounding Box object by margins of object (measured from position)
+     * 
+     * @param x1 width in pos x-direction.
+     * @param x2 width in neg x-direction.
+     * @param y1 length in pos y-direction. 
+     * @param y2 length in neg y-direction.
+     * @param z1 height in pos z-direction.
+     * @param z2 height in neg z-direction.
+     */
+    BoundingBox(float x1, float x2, float y1, float y2, float z1, float z2);
+    /**
+     * @brief Checks if Geometry is in some camera's view.
+     * 
+     * @param cam Camera.
+     * @return true Bounding box and Geometry inside could be visible to the camera.
+     * @return false Bounding box is outside view.
+     */
+    bool check_visibility(const Camera& cam, const View& view);
+    /**
+     * @brief Calculate and return vertex points of bounding box.
+     * 
+     * @return std::array<Vec3<float>, 8> array of vertex positions.
+     */
+    inline std::array<Vec3<float>, 8> get_points() noexcept;
 };
 
 /**

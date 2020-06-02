@@ -44,29 +44,33 @@ void Raytracer::render(){
     const size_t width = m_img->width();
     const size_t height = m_img->height();
 
-    //Calculate View
-    
-    Vec3<float> ul, ll, ur, lr;
+    //Empty view of scene. 
+    View view;
 
-    //Create camera setup from data
-    ul = {camera.distance, -camera.view_plane.x / 2, camera.view_plane.y / 2};
-    ll = {camera.distance, ul.y, -camera.view_plane.y / 2};
-    ur = {camera.distance, camera.view_plane.x / 2, ul.z};
-    lr = {camera.distance, ur.y, ll.z};
+    //Calculate view plane (=perspective) of view.
+    view.ul = {camera.distance, -camera.view_plane.x / 2, camera.view_plane.y / 2};
+    view.ll = {camera.distance, view.ul.y, -camera.view_plane.y / 2};
+    view.ur = {camera.distance, camera.view_plane.x / 2, view.ul.z};
+    view.lr = {camera.distance, view.ur.y, view.ll.z};
 
-    //Rotate Camera
-    rotate(ul, camera.rot.x, camera.rot.y, camera.rot.z); //    ul ------------ ur
-    rotate(ll, camera.rot.x, camera.rot.y, camera.rot.z); //    |               |
-    rotate(ur, camera.rot.x, camera.rot.y, camera.rot.z); //    |               |
-    rotate(lr, camera.rot.x, camera.rot.y, camera.rot.z); //    ll ------------ lr
+    //Rotate Camera: Rotate view.
+    rotate(view.ul, camera.rot.x, camera.rot.y, camera.rot.z); //    ul ------------ ur
+    rotate(view.ll, camera.rot.x, camera.rot.y, camera.rot.z); //    |               |
+    rotate(view.ur, camera.rot.x, camera.rot.y, camera.rot.z); //    |               |
+    rotate(view.lr, camera.rot.x, camera.rot.y, camera.rot.z); //    ll ------------ lr
 
-
+    //Iterate through pixels and calculate their color => Rendering.
     for(size_t y = 0; y < height; y++)
         for(size_t x = 0; x < width; x++){
-            Vec3<float> vx = ul + (ur - ul) * ((float)x / (float)width);
-            Vec3<float> v = vx + ((lr - ur) * ((float)y / (float)height));
-            Ray raycast(camera.max_ray_bounces, camera.pos, v.norm());
+            //For each pixel:
+            //1. Calculate ray direction vector from view plane and current pixel position.
+            Vec3<float> _ray_direction_x_only   = view.ul + (view.ur - view.ul) * ((float)x / (float)width);
+            Vec3<float> ray_direction           = _ray_direction_x_only + ((view.lr - view.ur) * ((float)y / (float)height));
+
+            //2. Cast ray from camera position, generated direction and bounce limit.
+            Ray raycast(camera.max_ray_bounces, camera.pos, ray_direction.norm());
             m_img->operator()(x, y) = raycast.fire(scene);
+            //                ^Pixel                ^Visible data
         }
     auto time = render_clock.stop();
     std::cout << "Elapsed time: " << (int)time << "ns = " << (time/1000000) << "ms" << std::endl;
@@ -86,24 +90,23 @@ Ray::Ray(const size_t max_bounces, Vec3<float> start, Vec3<float> dir)
 }
 
 Color Ray::fire(const SceneData& scene) {
-    //Stage 1: Interseption phase
+    //Stage 1: Intersection phase - calculate all possible intersections (with visible objects).
     for(Renderable* object : scene.m_render_list){
         if(object->m_visible && std::find(m_ignore.begin(), m_ignore.end(), object) == m_ignore.end())
             object->intersect(*this);
     }
     
+    //Check if any intersections were registered.
     if(m_closest.object){
         //Process intersection
         m_color = m_closest.object->process(scene, m_closest.point, *this);
-    }else{
-        //No intersection.
-    }
+    } // else: Skip processing stage.
 
     return m_color;
 }
 
 void Ray::intersection(const Intersection& inter){
-    //Step 1: Calculate distance to point on ray (=direction factor)
+    //Step 1: Is intersection positive (=visible to the view)?
     float dist;
     if(m_dir.x != 0)
         dist = (inter.point.x - m_start.x) / m_dir.x;
@@ -111,7 +114,8 @@ void Ray::intersection(const Intersection& inter){
         dist = (inter.point.y - m_start.y) / m_dir.y;
     else
         dist = (inter.point.z - m_start.z) / m_dir.z;
-    //Step 2: Check if point is in front of camera
+
+    //Step 2: Check if factor along direction vector of ray is positive.
     if(dist > 0){
         //Step 3: Compare to last intersection or set as closest intersection if there is no other
         if(!m_closest.object){
@@ -121,10 +125,37 @@ void Ray::intersection(const Intersection& inter){
             float _dist = (m_start - m_closest.point).length();
             if(abs(dist) < _dist) m_closest = inter;
         }
-    }
+    }// else: Don't register intersection
     
     
 }
+
+BoundingBox::BoundingBox(float x1, float x2, float y1, float y2, float z1, float z2) 
+{
+    a = {x1, y1, z1};
+    b = {-x2, -y2, -z2};
+}
+
+bool BoundingBox::check_visibility(const Camera& cam, const View& view){
+    auto arr = get_points();
+    for(Vec3<float>& vertex : arr){
+        Vec3<float> cam2vertex = (vertex - cam.pos).norm();
+        
+    }
+};
+
+std::array<Vec3<float>, 8> BoundingBox::get_points(){
+    std::array<Vec3<float>, 8> arr;
+    arr[0] = a;
+    arr[1] = {a.x, a.y, b.z};
+    arr[2] = {a.x, b.x, a.z};
+    arr[3] = {b.x, a.y, a.z};
+    arr[4] = b;
+    arr[5] = {b.x, b.y, a.z};
+    arr[6] = {b.x, a.y, b.z};
+    arr[7] = {a.x, b.y, b.z};
+    return arr;
+};
 
 bool Sphere::intersect(Ray& ray){
     Vec3<float> camera2center = pos - ray.m_start; 
@@ -218,4 +249,6 @@ void SceneData::remove(Light* light){
     if(!light) throw "Cannot remove nullptr from lights list.";
     light_list.remove(light);
 }
+
+
 
