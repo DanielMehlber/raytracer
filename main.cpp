@@ -8,7 +8,10 @@
 #include <iostream>
 #include "raytracer.h"
 
+
 int main(int argc, char** argv){
+
+
     const char* out_location = argv[1];
 
     if(!out_location) out_location = "result.ppm";
@@ -47,14 +50,16 @@ int main(int argc, char** argv){
     light2.distance = 20;
     //tracer.scene.add(&light2);
 
-    std::cout << "Rendering started...";
-    tracer.render();
-    std::cout << " finished." << std::endl;
+    //std::cout << "Rendering started...";
+    while(true){
+        tracer.render();
+    }
+    //std::cout << " finished." << std::endl;
 
-    std::cout << "Saving Image to location '" << out_location << "'... ";
-    _TRY_BEGIN img.write(out_location); _CATCH(const char* e) std::cerr << e << std::endl; _CATCH_END; 
+    //std::cout << "Saving Image to location '" << out_location << "'... ";
+    //_TRY_BEGIN img.write(out_location); _CATCH(const char* e) std::cerr << e << std::endl; _CATCH_END; 
 
-    std::cout << "finished. Raytracer is terminating..." << std::endl;
+    //std::cout << "finished. Raytracer is terminating..." << std::endl;
     
     return 0;
 }

@@ -1,6 +1,3 @@
-#ifndef __RAYTRACER_H__
-#define __RAYTRACER_H__
-
 //        __            _      __               __    ____             
 //   ____/ /___ _____  (_)__  / /___ ___  ___  / /_  / / /_  ___  _____
 //  / __  / __ `/ __ \/ / _ \/ / __ `__ \/ _ \/ __ \/ / __ \/ _ \/ ___/
@@ -15,6 +12,10 @@
 #include <iostream>
 #include <chrono>
 #include <array>
+//For displaying.
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 /**
  * @brief Measures time. Used for render time.
@@ -453,4 +454,5 @@ public:
      */
     void render();
 };
-#endif // __RAYTRACER_H__
+
+void display(const Image* img);

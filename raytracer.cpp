@@ -74,6 +74,7 @@ void Raytracer::render(){
         }
     auto time = render_clock.stop();
     std::cout << "Elapsed time: " << (int)time << "ns = " << (time/1000000) << "ms" << std::endl;
+    display(m_img);
 }
 
 Raytracer::Raytracer(Image* img)
@@ -137,14 +138,11 @@ BoundingBox::BoundingBox(float x1, float x2, float y1, float y2, float z1, float
 }
 
 bool BoundingBox::check_visibility(const Camera& cam, const View& view){
-    auto arr = get_points();
-    for(Vec3<float>& vertex : arr){
-        Vec3<float> cam2vertex = (vertex - cam.pos).norm();
-        
-    }
+    //TODO
+    return false;
 };
 
-std::array<Vec3<float>, 8> BoundingBox::get_points(){
+std::array<Vec3<float>, 8> BoundingBox::get_points() noexcept {
     std::array<Vec3<float>, 8> arr;
     arr[0] = a;
     arr[1] = {a.x, a.y, b.z};
@@ -250,5 +248,25 @@ void SceneData::remove(Light* light){
     light_list.remove(light);
 }
 
+
+void display(const Image* img){
+    #ifdef _WIN32
+    auto console_window = GetConsoleWindow();
+    auto dc = GetDC(console_window);
+    auto width = img->width();
+    auto height = img->height();
+    for(size_t y = 0; y < height; y++){
+        for(size_t x = 0; x < width; x++){
+            Color& c = img->operator()(x, y);
+            COLORREF color = RGB(c.r * 255, c.g * 255, c.b * 255);
+            SetPixel(dc, x, y, color);
+        }
+    }
+
+    while (!DisplayProcess::all_finished()) {}
+    ReleaseDC(console_window, dc);
+
+    #endif
+}
 
 
