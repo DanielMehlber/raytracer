@@ -270,9 +270,9 @@ struct Ray{
      */
     Intersection        m_closest;
     /**
-     * @brief Ignore an object for the next fire iteration.
+     * @brief Ignore an object for the next fire iteration. (Could be emitter)
      */
-    std::list<Renderable*> m_ignore;
+    Renderable*         m_ignore;
 
     /**
      * @brief Construct a new Ray object

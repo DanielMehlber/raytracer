@@ -93,7 +93,7 @@ Ray::Ray(const size_t max_bounces, Vec3<float> start, Vec3<float> dir)
 Color Ray::fire(const SceneData& scene) {
     //Stage 1: Intersection phase - calculate all possible intersections (with visible objects).
     for(Renderable* object : scene.m_render_list){
-        if(object->m_visible && std::find(m_ignore.begin(), m_ignore.end(), object) == m_ignore.end())
+        if(object->m_visible && object != m_ignore)
             object->intersect(*this);
     }
     
@@ -191,7 +191,7 @@ Color Sphere::process(const SceneData& scene, const Vec3<float>& point, const Ra
         Vec3<float> reflect = (ray.m_dir - (normal * normal.dot(ray.m_dir) * 2)).norm();
         
         Ray reflection_ray(ray.m_max_bounces - 1, point, reflect);
-        reflection_ray.m_ignore.push_back(this);
+        reflection_ray.m_ignore = this;
         //m_visible = false;
         reflection_color = reflection_ray.fire(scene);
         //m_visible = true;
@@ -263,7 +263,6 @@ void display(const Image* img){
         }
     }
 
-    while (!DisplayProcess::all_finished()) {}
     ReleaseDC(console_window, dc);
 
     #endif
