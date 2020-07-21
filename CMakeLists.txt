@@ -6,6 +6,7 @@ add_executable(
                 raytracer 
                 main.cpp 
                 raytracer.cpp
+                processing.cpp
               )
 
 

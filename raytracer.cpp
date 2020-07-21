@@ -262,8 +262,7 @@ void display(const Image* img){
             SetPixel(dc, x, y, color);
         }
     }
-
-    while (!DisplayProcess::all_finished()) {}
+    
     ReleaseDC(console_window, dc);
 
     #endif
