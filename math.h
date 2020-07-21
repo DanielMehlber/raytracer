@@ -19,6 +19,13 @@ template <typename T> struct Vec3;
 template<typename T> inline T degree(T t){ return t * 180/PI; }
 template<typename T> inline T radians(T t){ return t * PI/180; }
 
+template<typename T> inline T random(T from, T to){
+    float random = ((float) rand()) / (float) RAND_MAX;
+    float diff = to - from;
+    float r = random * diff;
+    return from + r;
+}
+
 template<typename T> struct Vec3{
     T x = NULL, y = NULL, z = NULL;
 
