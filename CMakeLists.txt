@@ -7,7 +7,7 @@ add_executable(
                 main.cpp 
                 raytracer.cpp
                 processing.cpp
-              )
+                timing.cpp)
 
 
 
