@@ -223,7 +223,7 @@ struct View {
 };
 
 /**
- * @brief Ray.
+ * @brief Ray of virtual light.
  */
 struct Ray{
     /**
