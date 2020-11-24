@@ -8,6 +8,7 @@
 #pragma once
 #include <memory>
 #include <cmath>
+#include "stdlib.h"
 
 template <typename T> class Matrix;
 template <typename T> struct Vec2;
@@ -142,9 +143,9 @@ template <typename T> Matrix<T>::~Matrix(){
 }
 
 template <typename T> Matrix<T>::Matrix(const Matrix& cpy)
-: m_colums{cpy.m_colums}, m_rows{cpy.m_rows}, data{m_rows * m_colums}
+: m_colums{cpy.m_colums}, m_rows{cpy.m_rows}, m_data{m_rows * m_colums}
 {
-    std::memcpy(m_data, cpy.data, m_colums * m_rows);
+    memcpy(m_data, cpy.data, m_colums * m_rows);
 }
 
 template <typename T> inline Vec3<T> rotateX(const Vec3<T>& vec, float degree){

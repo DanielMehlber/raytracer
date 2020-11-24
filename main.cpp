@@ -29,7 +29,7 @@ int main(int argc, char** argv){
     tracer.scene.add(&sphere1);
 
     Sphere sphere2; sphere2.radius = 1.5f;
-    sphere2.pos = {6.5f, 1.5f, 0};
+    sphere2.pos = {6.5f, 1.5f, 1.0f};
     sphere2.material.base_color = {0, 0, 1};
     sphere2.material.diffuseness = 1;
     tracer.scene.add(&sphere2);
@@ -50,6 +50,8 @@ int main(int argc, char** argv){
     light2.distance = 20;
     //tracer.scene.add(&light2);
 
+#ifdef _WIN32
+
     //std::cout << "Rendering started...";
     while(true){
         tracer.render();
@@ -60,6 +62,17 @@ int main(int argc, char** argv){
     //_TRY_BEGIN img.write(out_location); _CATCH(const char* e) std::cerr << e << std::endl; _CATCH_END; 
 
     //std::cout << "finished. Raytracer is terminating..." << std::endl;
-    
+#else
+    std::cout << "Rendering started...";
+    tracer.render();
+    std::cout << " finished." << std::endl;
+    std::cout << "Saving Image to location '" << out_location << "'... ";
+    try{ 
+        img.write(out_location);
+    } catch(const char* e) {
+        std::cerr << e << std::endl;
+    } 
+    std::cout << "finished. Raytracer is terminating..." << std::endl;
+#endif
     return 0;
 }
